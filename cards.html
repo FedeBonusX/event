@@ -31,9 +31,11 @@
         }
 
         .card-pattern-back {
-            background-image: url('https://www.toptal.com/designers/subtlepatterns/uploads/double-bubble-outline.png');
+            background-image: url('https://bonusx.zendesk.com/hc/theming_assets/01HZM4SWVVG6E10MG37TX3EKK7');
             background-color: #ffffff;
-            background-size: cover;
+            background-size: 80%;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .card-deck .card-back {
@@ -41,8 +43,7 @@
             width: 100%;
             height: 100%;
             border-radius: 16px;
-            border: 1px solid #ddd;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e0e0e0;
             backface-visibility: hidden;
             display: flex;
             align-items: center;
@@ -91,8 +92,7 @@
             height: 100%;
             backface-visibility: hidden;
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 1px solid #ddd;
+            border: 2px solid #e0e0e0;
         }
 
         .card-face-back {
@@ -105,12 +105,13 @@
         }
 
         .shuffle-button {
+            background-color: #0066CC; /* BonusX Blue */
             transition: all 0.2s ease;
-            box-shadow: 0 4px 0 #ab2828, 0 5px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 0 #004C99, 0 5px 10px rgba(0,0,0,0.2);
         }
         .shuffle-button:active {
             transform: translateY(4px);
-            box-shadow: 0 0px 0 #ab2828;
+            box-shadow: 0 0px 0 #004C99;
         }
     </style>
 </head>
@@ -146,7 +147,7 @@
         </div>
 
         <!-- Shuffle Button -->
-        <button id="shuffleButton" class="shuffle-button bg-red-600 text-white font-bold text-2xl py-4 px-10 rounded-xl">
+        <button id="shuffleButton" class="shuffle-button text-white font-bold text-2xl py-4 px-10 rounded-xl">
             Shuffle
         </button>
          <p id="message" class="mt-4 text-gray-500 h-6"></p>
@@ -164,6 +165,7 @@
                 { name: "Cristiano", url: "https://fedebonusx.github.io/event/cristiano.html", imageUrl: "https://raw.githubusercontent.com/FedeBonusX/event/6cff957f272e0d0023f30ae62e598a5fa42c6e38/img/cristiano.jpeg" },
                 { name: "Nicola", url: "https://fedebonusx.github.io/event/nicola.html", imageUrl: "https://raw.githubusercontent.com/FedeBonusX/event/6cff957f272e0d0023f30ae62e598a5fa42c6e38/img/nicola.png" }
             ];
+
             let alreadyPicked = [];
 
             // --- DOM ELEMENTS ---
