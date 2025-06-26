@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Shuffler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the card deck and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f4f5; /* Light background */
+            color: #1a1a1a; /* Dark text */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            perspective: 1000px;
+        }
+
+        .card-deck {
+            position: relative;
+            width: 200px;
+            height: 280px;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .card-pattern-back {
+            background-image: url('https://www.toptal.com/designers/subtlepatterns/uploads/double-bubble-outline.png');
+            background-color: #ffffff;
+            background-size: cover;
+        }
+
+        .card-deck .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Create the stacked effect */
+        .card-deck .card-back:nth-child(1) { transform: translateZ(-6px) rotateY(0deg); }
+        .card-deck .card-back:nth-child(2) { transform: translateZ(-4px) rotateY(0deg); }
+        .card-deck .card-back:nth-child(3) { transform: translateZ(-2px) rotateY(0deg); }
+        .card-deck .card-back:nth-child(4) { transform: translateZ(0px) rotateY(0deg); }
+
+        .shuffling {
+            animation: shuffle-anim 0.8s ease-in-out;
+        }
+
+        @keyframes shuffle-anim {
+            0% { transform: translateY(0) rotateZ(0); }
+            20% { transform: translateY(-20px) rotateZ(-5deg); }
+            40% { transform: translateY(20px) rotateZ(5deg); }
+            60% { transform: translateY(-10px) rotateZ(-3deg); }
+            80% { transform: translateY(10px) rotateZ(3deg); }
+            100% { transform: translateY(0) rotateZ(0); }
+        }
+
+        #revealedCardContainer {
+            perspective: 1000px;
+            display: none; /* Initially hidden */
+        }
+
+        #revealedCard {
+            width: 280px;
+            height: 400px;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: rotateY(180deg); /* Start flipped */
+        }
+
+        #revealedCard.is-flipped {
+            transform: rotateY(0deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid #ddd;
+        }
+
+        .card-face-back {
+            transform: rotateY(180deg);
+        }
+
+        .card-face-front {
+            background-color: #fff;
+            color: #1a1a1a;
+        }
+
+        .shuffle-button {
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #ab2828, 0 5px 10px rgba(0,0,0,0.4);
+        }
+        .shuffle-button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #ab2828;
+        }
+    </style>
+</head>
+<body class="bg-zinc-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div id="appContainer" class="text-center">
+
+        <!-- Card Deck -->
+        <div id="deckContainer" class="mb-12 h-[280px] flex items-center justify-center">
+            <div class="card-deck">
+                <div class="card-back card-pattern-back"></div>
+                <div class="card-back card-pattern-back"></div>
+                <div class="card-back card-pattern-back"></div>
+                <div class="card-back card-pattern-back"></div>
+            </div>
+        </div>
+
+        <!-- Revealed Card Placeholder -->
+        <div id="revealedCardContainer" class="mb-12 h-[400px]">
+            <a id="cardLink" href="#" target="_blank" class="cursor-pointer">
+                <div id="revealedCard">
+                    <!-- Back of the revealed card -->
+                    <div class="card-face card-face-back card-pattern-back"></div>
+                    <!-- Front of the revealed card (content) -->
+                    <div class="card-face card-face-front overflow-hidden flex flex-col">
+                        <img id="cardImage" src="" alt="Profile Photo" class="w-full h-3/4 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/280x300/e2e8f0/475569?text=Image+Not+Found';">
+                        <div class="p-5 text-left flex-grow flex items-center">
+                            <h2 id="cardName" class="text-2xl font-bold" style="font-family: 'Playfair Display', serif;"></h2>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Shuffle Button -->
+        <button id="shuffleButton" class="shuffle-button bg-red-600 text-white font-bold text-2xl py-4 px-10 rounded-xl">
+            Shuffle
+        </button>
+         <p id="message" class="mt-4 text-gray-500 h-6"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            // The links and associated data for each person.
+            const people = [
+                { name: "Erminio", url: "https://fedebonusx.github.io/event/erminio.html", imageUrl: "img/erminio.jpg" },
+                { name: "Carla", url: "https://fedebonusx.github.io/event/carla.html", imageUrl: "imgcarla.jpg" },
+                { name: "Adriano", url: "https://fedebonusx.github.io/event/adriano.html", imageUrl: "img/adriano.jpg" },
+                { name: "Jazael", url: "https://fedebonusx.github.io/event/jazael.html", imageUrl: "img/jazael.jpg" },
+                { name: "Cristiano", url: "https://fedebonusx.github.io/event/cristiano.html", imageUrl: "img/cristiano.jpg" },
+                { name: "Nicola", url: "https://fedebonusx.github.io/event/nicola.html", imageUrl: "img/nicola.jpg" }
+            ];
+            let alreadyPicked = [];
+
+            // --- DOM ELEMENTS ---
+            const shuffleButton = document.getElementById('shuffleButton');
+            const deckContainer = document.getElementById('deckContainer');
+            const cardDeck = document.querySelector('.card-deck');
+            const revealedCardContainer = document.getElementById('revealedCardContainer');
+            const revealedCard = document.getElementById('revealedCard');
+            const message = document.getElementById('message');
+            
+            // --- EVENT LISTENER ---
+            shuffleButton.addEventListener('click', handleShuffle);
+
+            function handleShuffle() {
+                // Check if all cards have been picked
+                if (alreadyPicked.length === people.length) {
+                    message.textContent = "All cards drawn! Resetting deck...";
+                    alreadyPicked = []; // Reset the picked array
+                    setTimeout(() => {
+                        message.textContent = "";
+                        // Reset view to the deck
+                        revealedCardContainer.style.display = 'none';
+                        revealedCard.classList.remove('is-flipped');
+                        deckContainer.style.display = 'flex';
+                        shuffleButton.textContent = "Shuffle";
+                    }, 2500);
+                    return;
+                }
+                
+                // Disable button to prevent multiple clicks during animation
+                shuffleButton.disabled = true;
+                shuffleButton.classList.add('opacity-50', 'cursor-not-allowed');
+                message.textContent = "";
+
+                // Flip back the card if one is already revealed
+                if (revealedCardContainer.style.display === 'block') {
+                    revealedCard.classList.remove('is-flipped');
+                }
+
+                // Show shuffle animation on the deck
+                deckContainer.style.display = 'flex';
+                cardDeck.classList.add('shuffling');
+
+                // Wait for animations to play out
+                setTimeout(() => {
+                    cardDeck.classList.remove('shuffling');
+                    
+                    // Hide the deck and show the placeholder for the new card
+                    deckContainer.style.display = 'none';
+                    revealedCardContainer.style.display = 'block';
+
+                    // Find a person who hasn't been picked yet
+                    let selectedPerson;
+                    do {
+                        const randomIndex = Math.floor(Math.random() * people.length);
+                        selectedPerson = people[randomIndex];
+                    } while (alreadyPicked.includes(selectedPerson.name));
+
+                    alreadyPicked.push(selectedPerson.name);
+
+                    // Update the revealed card content
+                    updateCardContent(selectedPerson);
+                    
+                    // Flip the card to reveal the content
+                    setTimeout(() => {
+                        revealedCard.classList.add('is-flipped');
+                    }, 100); // A small delay to ensure the card is rendered before flipping
+
+                    // Change button text and re-enable it
+                    shuffleButton.textContent = "Shuffle Again";
+                    shuffleButton.disabled = false;
+                    shuffleButton.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                }, 1000); // Sync with shuffle animation duration
+            }
+            
+            function updateCardContent(person) {
+                document.getElementById('cardImage').src = person.imageUrl;
+                document.getElementById('cardName').textContent = person.name;
+                document.getElementById('cardLink').href = person.url;
+            }
+        });
+    </script>
+</body>
+</html>
